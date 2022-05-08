@@ -1,13 +1,13 @@
+from time import strftime
+
 import sys
 from datetime import datetime
 from PySide6 import QtCore, QtWidgets, QtGui
 from PySide6.QtCore import Qt, Signal, Slot, QObject
-from PySide6.QtWidgets import (
-    QApplication, QLabel, QMainWindow, QPushButton, QWidget, QVBoxLayout, QHBoxLayout, QGridLayout,
-    QLineEdit, QTextEdit, QCheckBox, QSpinBox, QDateEdit)
+from PySide6.QtWidgets import *
 
-
-import GSheet, MVC
+import GSheet
+import MVC
 
 
 class CustomOrderWindow(QWidget):
@@ -18,7 +18,6 @@ class CustomOrderWindow(QWidget):
 
         bool_label_col = 4
         bool_col = 3
-        spacer_col = 2
         edit_label_col = 0
         edit_col = 1
 
@@ -31,7 +30,6 @@ class CustomOrderWindow(QWidget):
         submit_row = 7
 
         layout = QGridLayout()
-        # layout.setColumnMinimumWidth(spacer_col, 5)
         layout.setColumnStretch(1, 10)
 
         self.nameEdit = QLineEdit()
@@ -41,8 +39,7 @@ class CustomOrderWindow(QWidget):
         self.sizeEdit = QSpinBox()
         self.mouldingCheck = QCheckBox()
         self.dueDateBox = QDateEdit()
-        self.commentBox = QTextEdit()
-
+        self.commentBox = QLineEdit()
 
         # Name
         layout.addWidget(QLabel("Name:"), name_row, edit_label_col)
@@ -81,23 +78,36 @@ class CustomOrderWindow(QWidget):
         self.setLayout(layout)
 
         # TODO implement cancel and submit properly\
-        self.submitButton.clicked.connect(self.print_order)
+        self.submitButton.clicked.connect(self.add_order)
         # self.cancelButton.clicked.connect()
 
     @Slot()
-    def print_order(self):
-        order = [self.nameEdit.text()]
+    def add_order(self):
+        # Adds appropriate post-affix to the sets for readability in GSheets
         qty = self.qtyEdit.text()
         if self.qtySetCheckbox.isChecked():
             if qty == '1':
                 qty += " Set"
             else:
                 qty += " Sets"
-        order.append(qty)
-        order.append(self.partEdit.text())
-        order.append(self.sizeEdit.text())
-        # TODO Finish the appends
-        print(order)
+
+        order = ["",                                                  # Delivered
+                 self.nameEdit.text(),                                # Customer Name
+                 '',                                                  # Part Number
+                 qty,                                                 # Quantity
+                 self.partEdit.text(),                                # Part Ordered
+                 self.sizeEdit.text() if not '0' else '',             # Size of part ordered
+                 str(self.mouldingCheck.isChecked()),                 # Moulding check
+                 "False", "False", "False",                           # Internal use indicators (Made, Cut, Pretty)
+                 "False",                                             # TODO: Shipping or Painting toggle/radio check
+                 "False",                                             # ^
+                 str(datetime.today().date().strftime("%m/%d/%Y")),   # Ordered date
+                 self.dueDateBox.text(),                              # Due Date
+                 "",                                                  # SO Reference
+                 self.commentBox.text()                               # Comments
+                 ]
+
+        GSheet.send_data(order)
 
 
 class MainWindow(QMainWindow):
@@ -106,17 +116,12 @@ class MainWindow(QMainWindow):
 
         self.table = QtWidgets.QTableView()
 
-        # data = [
-        #     ['FALSE', 'Trae Eklund', '', '1', 'KW Bowtie Style Visor', '', 'TRUE', 'FALSE', 'FALSE', 'FALSE', 'FALSE', 'TRUE', '3/28/2022'],
-        #     ['FALSE', 'Stock', '', '1', 'Fiberglass standup airbox', '', 'FALSE', 'FALSE', 'FALSE', 'FALSE', 'FALSE', 'TRUE', '3/28/2022'],
-        #     ['FALSE', 'Stock', '', '1', '6 ft Deckplate Section', '', 'FALSE', 'FALSE', 'FALSE', 'FALSE', 'FALSE', 'TRUE', '3/28/2022', '', '', 'test']
-        # ]
-
         self.model = MVC.TableModel(GSheet.get_data())
         self.table.setModel(self.model)
 
-        self.button = QPushButton("Push for window")
-        self.button.clicked.connect(self.show_new_window)
+        self.order_button = QPushButton("Add Order")
+
+        self.order_button.clicked.connect(self.show_new_window)
         self.central_widget = QWidget()
         self.addCustomWindow = CustomOrderWindow()
         self.central_layout = QVBoxLayout()
@@ -124,13 +129,26 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(self.central_widget)
 
         self.central_layout.addWidget(self.table)
-        self.central_layout.addWidget(self.button)
+        self.central_layout.addWidget(self.order_button)
 
-    def show_new_window(self, checked):
+        self.status_bar = QStatusBar(self)
+        self.refresh_btn = QToolButton(self.status_bar)
+        self.refresh_btn.setToolTip("Refresh")
+        self.refresh_btn.setText("Refresh")
+        self.setStatusBar(self.status_bar)
+
+        self.refresh_btn.clicked.connect(self.refresh)
+
+    def show_new_window(self):
         self.addCustomWindow.show()
 
+    @Slot()
+    def refresh(self):
+        self.model = MVC.TableModel(GSheet.get_data())
+        self.model.layoutChanged.emit()
+        print("Refresh")
 
-# print(GSheet.print_data())
+
 app = QApplication(sys.argv)
 w = MainWindow()
 w.show()

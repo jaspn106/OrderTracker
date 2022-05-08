@@ -3,19 +3,9 @@ from datetime import datetime
 from PySide6 import QtCore, QtWidgets, QtGui
 from PySide6.QtCore import Qt, Signal, Slot, QObject
 import random
+from datetime import datetime
 
 HEADER_LABELS = ["Name", "Quantity", "Part", "Size", "Moulding", "Due Date", "Comments", "Ordered Date"]
-
-TEST_ORDER = [
-    "Jeff ",  # Name
-    "1 Set",  # Quantity
-    random.randint(0, 2),  # Part
-    random.randint(1, 6),  # Size
-    'True',  # Moulding?
-    datetime.today(),  # Due date
-    "With dip",  # Comment
-    datetime.today(),  # Ordered date
-]
 
 
 class TableModel(QtCore.QAbstractTableModel):
@@ -25,10 +15,21 @@ class TableModel(QtCore.QAbstractTableModel):
 
     def data(self, index, role):
         if role == Qt.DisplayRole:
-            # See below for the nested-list data structure.
             # .row() indexes into the outer list
             # .col() indexes into the sub-list
-            return self._data[index.row()][index.column()]
+            value = self._data[index.row()][index.column()]
+
+            # Preform per-type checks and render accordingly
+            if isinstance(value, datetime):
+                # Render time to MM-DD-YYYY
+                return value.strftime("%m-%d-%Y")
+
+            # Default
+            return value
+
+        if role == Qt.TextAlignmentRole:
+            value = self._data[index.row()][index.column()]
+
 
     def rowCount(self, index):
         # The Length of the outer list
@@ -45,3 +46,5 @@ class TableModel(QtCore.QAbstractTableModel):
         #         length = len(row)
         # return length
 
+    def setData(self, index, value, role):
+        pass
