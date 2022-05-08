@@ -115,6 +115,8 @@ class MainWindow(QMainWindow):
         super().__init__()
 
         self.table = QtWidgets.QTableView()
+        self.table.verticalHeader().hide()
+        self.table.setSelectionBehavior(QAbstractItemView.SelectRows)
 
         self.model = MVC.TableModel(GSheet.get_data())
         self.table.setModel(self.model)
@@ -150,6 +152,7 @@ class MainWindow(QMainWindow):
 
 
 app = QApplication(sys.argv)
+app.setStyle("fusion")
 w = MainWindow()
 w.show()
 app.exec_()
