@@ -5,7 +5,7 @@ from PySide6.QtCore import Qt, Signal, Slot, QObject
 import random
 from datetime import datetime
 
-HEADER_LABELS = ["Name", "Quantity", "Part", "Size", "Moulding", "Due Date", "Comments", "Ordered Date"]
+HEADER_LABELS = ["Customer", "Quantity", "Part", "Size", "Moulding", "Shipping", "Painting", "Ordered Date", "Due Date", "Comments"]
 
 
 class TableModel(QtCore.QAbstractTableModel):
@@ -15,6 +15,11 @@ class TableModel(QtCore.QAbstractTableModel):
 
     def data(self, index, role):
         if role == Qt.DisplayRole:
+            try:
+                value = self._data[index.row()][index.column()]
+
+            except IndexError:
+                return ""  # invalid index, return empty string
             # .row() indexes into the outer list
             # .col() indexes into the sub-list
             value = self._data[index.row()][index.column()]
@@ -28,6 +33,12 @@ class TableModel(QtCore.QAbstractTableModel):
             return value
 
         if role == Qt.TextAlignmentRole:
+            try:
+                value = self._data[index.row()][index.column()]
+
+            except IndexError:
+                return ""  # invalid index, return empty string
+
             value = self._data[index.row()][index.column()]
 
 
@@ -38,13 +49,21 @@ class TableModel(QtCore.QAbstractTableModel):
     def columnCount(self, index):
         # The Following takes the first sub-list, and returns
         # the length (only works if all rows are equal length)
-        return len(self._data[0])
+        # return len(self._data[0])
         # TODO test if [code below] this works and replace the line above
-        # length = 0
-        # for row in self._data:
-        #     if len(row) > length:
-        #         length = len(row)
-        # return length
+        length = 0
+        for row in self._data:
+            if len(row) > length:
+                length = len(row)
+        return length
+
+    def headerData(self, section, orientation, role):
+        if orientation == Qt.Horizontal and role == Qt.DisplayRole:
+            try:
+                return HEADER_LABELS[section]
+            except:
+                pass
+
 
     def setData(self, index, value, role):
         pass
