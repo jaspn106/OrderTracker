@@ -3,7 +3,7 @@ from time import strftime
 import sys
 from datetime import datetime
 from PySide6 import QtCore, QtWidgets, QtGui
-from PySide6.QtCore import Qt, Signal, Slot, QObject
+from PySide6.QtCore import *
 from PySide6.QtWidgets import *
 
 import GSheet
@@ -40,6 +40,12 @@ class CustomOrderWindow(QWidget):
         self.mouldingCheck = QCheckBox()
         self.dueDateBox = QDateEdit()
         self.commentBox = QLineEdit()
+
+        # Make due date average 2 weeks after added
+        self.dueDateBox.setDisplayFormat('MM/dd/yyyy')
+        self.dueDateBox.setDate(QDate.currentDate().addMonths(1))
+        self.dueDateBox.setCalendarPopup(1)
+        self.dueDateBox.setMinimumDate(QDate.currentDate())
 
         # Name
         layout.addWidget(QLabel("Name:"), name_row, edit_label_col)
@@ -79,6 +85,7 @@ class CustomOrderWindow(QWidget):
 
         # TODO implement cancel and submit properly\
         self.submitButton.clicked.connect(self.add_order)
+        self.submitButton.clicked.connect(self.submitButton.parentWidget().close)
         # self.cancelButton.clicked.connect()
 
     @Slot()
@@ -92,7 +99,7 @@ class CustomOrderWindow(QWidget):
                 qty += " Sets"
 
         order = ["",                                                  # Delivered
-                 self.nameEdit.text(),                                # Customer Name
+                 self.nameEdit.text() if not ' ' else "Unknown",      # Customer Name
                  '',                                                  # Part Number
                  qty,                                                 # Quantity
                  self.partEdit.text(),                                # Part Ordered

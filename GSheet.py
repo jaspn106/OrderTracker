@@ -45,7 +45,7 @@ def get_data():
 
                 # If name column is empty break out of loop
                 if row[1] == '':
-                    break
+                    continue
 
                 # Otherwise iterate through values for what we want to show
                 # 1 - Customer
