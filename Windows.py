@@ -2,9 +2,10 @@ from time import strftime
 
 import sys
 from datetime import datetime
-from PySide6 import QtCore, QtWidgets, QtGui
+from PySide6 import *
 from PySide6.QtCore import *
 from PySide6.QtWidgets import *
+from PySide6.QtGui import QAction
 
 import GSheet
 import MVC
@@ -128,25 +129,21 @@ class MainWindow(QMainWindow):
         self.model = MVC.TableModel(GSheet.get_data())
         self.table.setModel(self.model)
 
-        self.order_button = QPushButton("Add Order")
-
-        self.order_button.clicked.connect(self.show_new_window)
-        self.central_widget = QWidget()
         self.addCustomWindow = CustomOrderWindow()
-        self.central_layout = QVBoxLayout()
-        self.central_widget.setLayout(self.central_layout)
-        self.setCentralWidget(self.central_widget)
+        self.setCentralWidget(self.table)
 
-        self.central_layout.addWidget(self.table)
-        self.central_layout.addWidget(self.order_button)
+        # Create and add toolbar
+        tool_bar = QToolBar(self)
+        self.addToolBar(tool_bar)
 
-        self.status_bar = QStatusBar(self)
-        self.refresh_btn = QToolButton(self.status_bar)
-        self.refresh_btn.setToolTip("Refresh")
-        self.refresh_btn.setText("Refresh")
-        self.setStatusBar(self.status_bar)
+        # Create and add actions
+        refresh_action = QAction("Refresh", self)
+        tool_bar.addAction(refresh_action)
+        refresh_action.triggered.connect(self.refresh)
 
-        self.refresh_btn.clicked.connect(self.refresh)
+        add_order_action = QAction("New Order", self)
+        tool_bar.addAction(add_order_action)
+        add_order_action.triggered.connect(self.show_new_window)
 
     def show_new_window(self):
         self.addCustomWindow.show()
