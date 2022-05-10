@@ -29,6 +29,9 @@ class TableModel(QtCore.QAbstractTableModel):
                 # Render time to MM-DD-YYYY
                 return value.strftime("%m-%d-%Y")
 
+            if isinstance(value, bool):
+                return
+
             # Default
             return value
 
@@ -39,7 +42,28 @@ class TableModel(QtCore.QAbstractTableModel):
             except IndexError:
                 return ""  # invalid index, return empty string
 
+            if isinstance(value, bool):
+                # return Qt.AlignHCenter
+                pass
+
             value = self._data[index.row()][index.column()]
+
+        if role == Qt.DecorationRole:
+            try:
+                value = self._data[index.row()][index.column()]
+            except IndexError:
+                return ""  # invalid index, return empty string
+            value = self._data[index.row()][index.column()]
+
+            if isinstance(value, datetime):
+                return QtGui.QIcon("calender.png")
+
+            if isinstance(value, bool):
+                if value:
+                    print("Tick")
+                    return QtGui.QIcon("green-check.png")
+
+                return
 
 
     def rowCount(self, index):

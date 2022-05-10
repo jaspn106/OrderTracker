@@ -5,7 +5,7 @@ from datetime import datetime
 from PySide6 import *
 from PySide6.QtCore import *
 from PySide6.QtWidgets import *
-from PySide6.QtGui import QAction
+from PySide6.QtGui import QAction, QIcon
 
 import GSheet
 import MVC
@@ -122,9 +122,11 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
+        self.setMinimumSize(800,600)
         self.table = QtWidgets.QTableView()
         self.table.verticalHeader().hide()
         self.table.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.table.horizontalHeader().setStretchLastSection(True)
 
         self.model = MVC.TableModel(GSheet.get_data())
         self.table.setModel(self.model)
@@ -137,19 +139,21 @@ class MainWindow(QMainWindow):
         self.addToolBar(tool_bar)
 
         # Create and add actions
-        refresh_action = QAction("Refresh", self)
+        add_order_action = QAction(QIcon("icons8-plus-+-50.png"), "New Order", self)
+        tool_bar.addAction(add_order_action)
+        add_order_action.triggered.connect(self.show_new_window)
+
+        refresh_action = QAction(QIcon('refresh2.png'), "Refresh", self)
         tool_bar.addAction(refresh_action)
         refresh_action.triggered.connect(self.refresh)
 
-        add_order_action = QAction("New Order", self)
-        tool_bar.addAction(add_order_action)
-        add_order_action.triggered.connect(self.show_new_window)
 
     def show_new_window(self):
         self.addCustomWindow.show()
 
     @Slot()
     def refresh(self):
+        self.table.resizeColumnsToContents()
         self.model = MVC.TableModel(GSheet.get_data())
         self.model.layoutChanged.emit()
         print("Refresh")

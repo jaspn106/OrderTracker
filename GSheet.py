@@ -66,7 +66,12 @@ def get_data():
                     if x >= len(row):
                         break
                     if x not in {2, 7, 8, 9, 14}:
-                        _row.append(row[x])
+                        if row[x] == "TRUE":
+                            _row.append(True)
+                        elif row[x] == "FALSE":
+                            _row.append(False)
+                        else:
+                            _row.append(row[x])
                 data.append(_row)
 
     except HttpError as err:
