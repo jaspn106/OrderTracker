@@ -15,13 +15,6 @@ class TableModel(QtCore.QAbstractTableModel):
 
     def data(self, index, role):
         if role == Qt.DisplayRole:
-            try:
-                value = self._data[index.row()][index.column()]
-
-            except IndexError:
-                return ""  # invalid index, return empty string
-            # .row() indexes into the outer list
-            # .col() indexes into the sub-list
             value = self._data[index.row()][index.column()]
 
             # Preform per-type checks and render accordingly
@@ -29,30 +22,16 @@ class TableModel(QtCore.QAbstractTableModel):
                 # Render time to MM-DD-YYYY
                 return value.strftime("%m-%d-%Y")
 
-            if isinstance(value, bool):
-                return
-
             # Default
             return value
 
         if role == Qt.TextAlignmentRole:
-            try:
-                value = self._data[index.row()][index.column()]
-
-            except IndexError:
-                return ""  # invalid index, return empty string
-
-            if isinstance(value, bool):
-                # return Qt.AlignHCenter
-                pass
-
             value = self._data[index.row()][index.column()]
 
+            if index.column() == 1:
+                return Qt.AlignRight
+
         if role == Qt.DecorationRole:
-            try:
-                value = self._data[index.row()][index.column()]
-            except IndexError:
-                return ""  # invalid index, return empty string
             value = self._data[index.row()][index.column()]
 
             if isinstance(value, datetime):
@@ -60,10 +39,7 @@ class TableModel(QtCore.QAbstractTableModel):
 
             if isinstance(value, bool):
                 if value:
-                    print("Tick")
                     return QtGui.QIcon("green-check.png")
-
-                return
 
 
     def rowCount(self, index):
@@ -88,6 +64,5 @@ class TableModel(QtCore.QAbstractTableModel):
             except:
                 pass
 
-
-    def setData(self, index, value, role):
-        pass
+    # def setData(self, index, value, role):
+    #     pass

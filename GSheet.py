@@ -14,8 +14,8 @@ SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 SERVICE_ACCOUNT_FILE = '.config/service_account.json'
 
 # The ID and range of a sample spreadsheet.
-SAMPLE_SPREADSHEET_ID = '1Yx-ki6Vkj9VJ2_BFjjFOPO67AOkKyZ7Lc3LVDGLjOFA'
-SAMPLE_RANGE_NAME = 'Working Orders!A2:P'
+ORDER_SPREADSHEET_ID = '1Yx-ki6Vkj9VJ2_BFjjFOPO67AOkKyZ7Lc3LVDGLjOFA'
+WORKING_ORDER_RANGE = 'Working Orders!A2:P'
 
 # Create credentials
 creds = service_account.Credentials.from_service_account_file(
@@ -31,8 +31,8 @@ def get_data():
 
         # Call the Sheets API
         sheet = service.spreadsheets()
-        result = sheet.values().get(spreadsheetId=SAMPLE_SPREADSHEET_ID,
-                                    range=SAMPLE_RANGE_NAME).execute()
+        result = sheet.values().get(spreadsheetId=ORDER_SPREADSHEET_ID,
+                                    range=WORKING_ORDER_RANGE).execute()
         values = result.get('values', [])
 
         data = []
@@ -49,7 +49,7 @@ def get_data():
 
                 # Otherwise iterate through values for what we want to show
                 # 1 - Customer
-                # 2 - Part Number (Yet to be implemented so this can be not shown for now)
+                #-2-- Part Number (Yet to be implemented so this can be not shown for now)
                 # 3 - Quantity
                 # 4 - Item ordered
                 # 5 - Size (Can be lip sizes or length of skirt)
@@ -59,20 +59,28 @@ def get_data():
                 # 13 - Due date
                 # 15 - Comments
                 # Summary: Don't show columns 2, 7, 8, 9, 14
-                print(len(row))
 
                 _row = []
+
+                # for x in range(1, 16):
+
                 for x in range(1, 16):
-                    if x >= len(row):
-                        break
-                    if x not in {2, 7, 8, 9, 14}:
-                        if row[x] == "TRUE":
-                            _row.append(True)
-                        elif row[x] == "FALSE":
-                            _row.append(False)
-                        else:
-                            _row.append(row[x])
+                    if x < len(row):
+                        if x not in {2, 7, 8, 9, 14}:
+
+                            if row[x] == "TRUE":
+                                _row.append(True)
+                            elif row[x] == "FALSE":
+                                _row.append(False)
+                            elif row[x] == '':
+                                _row.append(' ')
+                            else:
+                                _row.append(row[x])
+                    elif x not in {2, 7, 8, 9, 14}:
+                        _row.append(" ")
+
                 data.append(_row)
+                print(len(_row), _row)
 
     except HttpError as err:
         print(err)
@@ -94,7 +102,7 @@ def send_data(new_order):
         # Call the Sheets API
         sheet = service.spreadsheets()
 
-        request = service.spreadsheets().values().append(spreadsheetId=SAMPLE_SPREADSHEET_ID, range="A1",
+        request = service.spreadsheets().values().append(spreadsheetId=ORDER_SPREADSHEET_ID, range="A1",
                                                          valueInputOption='USER_ENTERED',
                                                          insertDataOption='INSERT_ROWS', body=_body)
         response = request.execute()
